@@ -1,5 +1,11 @@
 (function($){
-    var Flider = function(container, options){
+    var Flider = function(wrapper, options){
+        var slides = wrapper.children();
+        var container =$('<div calss="flider-container"></div>');
+        container.append(slides);
+        wrapper.append(container);
+        wrapper.addClass('flider');
+
         var defaults = {
             effect : 'fade',
             duration: 100,
@@ -9,7 +15,6 @@
 
         };
 
-        var slides = container.children();
         var currentSlide = slides.first();
 
         container.css('position', 'relative');
@@ -19,7 +24,7 @@
             'display': 'none',
             'top': 0,
             'left': 0,
-            'background-color': 'white'
+            //'background-color': 'white'
 
         });
         currentSlide.css({
@@ -30,13 +35,13 @@
 
         var changeSlide = function(nextSlide, complete){
             nextSlide.css({
-                'z-index': '0',
-                'display': 'block'
+                'z-index': '0'
+                //'display': 'block'
             });
-            //nextSlide.fadeIn({
-            //    duration: options.duration,
-            //
-            //});
+            nextSlide.fadeIn({
+                duration: options.duration,
+
+            });
             currentSlide.fadeOut({
                 duration: options.duration,
                 complete: function(){
@@ -83,20 +88,23 @@
                 autoPlay = setTimeout(play,options.delay);
             });
         };
-
-        var prevButton = $('<a href="#" >Prev</a>');
-        var nextButton = $('<a href="#" >Next</a>');
-
-        prevButton.click(function(){
-            prev();
-            return false;
-        });
-        nextButton.click(function(){
-            next();
-            return false;
-        });
         if(options.controls) {
-            container.append(prevButton, nextButton);
+
+            var prevButton = $('<a href="#" >Prev</a>');
+            var nextButton = $('<a href="#" >Next</a>');
+            var controls = $('<div class="controls"></div>');
+            controls.append(prevButton, nextButton);
+            wrapper.append(controls);
+
+            prevButton.click(function () {
+                prev();
+                return false;
+            });
+
+            nextButton.click(function () {
+                next();
+                return false;
+            });
         }
 
 
@@ -109,10 +117,10 @@
 
     $.fn.flider = function(options){
         return this.each(function(){
-            var container = $(this);
-            var slider = new Flider(container, options);
-            container.data('flider', slider);
-            return container;
+            var wrapper = $(this);
+            var slider = new Flider(wrapper, options);
+            wrapper.data('flider', slider);
+            return wrapper;
         });
     };
 
