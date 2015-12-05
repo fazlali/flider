@@ -19,7 +19,7 @@
             'display': 'none',
             'top': 0,
             'left': 0,
-            'background-color': 'white'
+            //'background-color': 'white'
 
         });
         currentSlide.css({
@@ -30,13 +30,13 @@
 
         var changeSlide = function(nextSlide, complete){
             nextSlide.css({
-                'z-index': '0',
-                'display': 'block'
+                'z-index': '0'
+                //'display': 'block'
             });
-            //nextSlide.fadeIn({
-            //    duration: options.duration,
-            //
-            //});
+            nextSlide.fadeIn({
+                duration: options.duration,
+
+            });
             currentSlide.fadeOut({
                 duration: options.duration,
                 complete: function(){
