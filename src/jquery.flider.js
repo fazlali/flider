@@ -11,7 +11,8 @@
             duration: 100,
             autoPlay: true,
             delay: 1000,
-            controls: false
+            controls: false,
+            onHoverPause: true
 
         };
 
@@ -116,6 +117,12 @@
         if(options.autoPlay){
             clearTimeout(autoPlay);
             autoPlay = setTimeout(play,options.delay);
+        }
+
+        if(options.onHoverPause){
+            wrapper.mousehover(function(){
+
+            });
         }
 
     };
