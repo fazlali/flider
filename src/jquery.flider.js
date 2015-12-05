@@ -4,7 +4,7 @@
         var container =$('<div calss="flider-container"></div>');
         container.append(slides);
         wrapper.append(container);
-        wrapper.addClass('flider');
+        wrapper.addClass('flider').css('z-index',0);
 
         var defaults = {
             effect : 'fade',
@@ -17,15 +17,15 @@
 
         var currentSlide = slides.first();
 
-        container.css('position', 'relative');
+        container.css({
+            'position': 'relative',
+            'overflow': 'hidden'
+        });
         slides.css({
             'position': 'absolute',
             'z-index': '-1',
             'display': 'none',
-            'top': 0,
-            'left': 0,
-            //'background-color': 'white'
-
+            'top': 0
         });
         currentSlide.css({
             'position': 'relative',
@@ -34,6 +34,11 @@
         });
 
         var changeSlide = function(nextSlide, complete){
+
+            if(nextSlide.is(currentSlide)){
+                return;
+            }
+
             nextSlide.css({
                 'z-index': '0'
                 //'display': 'block'
