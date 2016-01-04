@@ -47,6 +47,11 @@
                 'z-index': '0'
                 //'display': 'block'
             });
+            slides.each(function(index, slide){
+                if($(slide) != currentSlide)
+                    $(slide).data('pointer').removeClass('active').parent().removeClass('active');
+            });
+            nextSlide.data('pointer').addClass('active').parent().addClass('active');
             nextSlide.fadeIn({
                 duration: options.duration
 
@@ -141,11 +146,13 @@
                 var pointer = $('<a href="#">' + title + '</a>');
                 pointer.click(function (e) {
                     changeSlide(slide);
+
                     return false;
                 });
                 var li =$('<li></li>');
                 li.append(pointer);
                 pager.append(li);
+                slide.data('pointer', pointer);
             });
             switch (options.pagerPosition){
                 case 'bottom':
