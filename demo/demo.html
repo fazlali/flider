@@ -9,7 +9,7 @@
 
 <div id="question-answers-slider">
     <section class="question-answer sliding-teaser">
-
+<div class="pager">Page 1</div>
         <div class="inner">
             <h3 class="title">
                 <a href="http://avic.dev/questions/400/slm-khsth-nbd-mn-mhr-mh-sl-91krs-sd-fol-r"> سلام خسته نباشید من مهر ماه سال 91قرص اسید فولیک را</a>
@@ -127,7 +127,11 @@
 </section>                            </div>
 
 <script>
-    $("#question-answers-slider").flider({duration: 20000});
+    $("#question-answers-slider").flider({
+        duration: 900,
+        autoPlay: false,
+        pager: true
+    });
 </script>
 </body>
 </html>

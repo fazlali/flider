@@ -1,7 +1,7 @@
 (function($){
     var Flider = function(wrapper, options){
         var slides = wrapper.children();
-        var container =$('<div calss="flider-container"></div>');
+        var container =$('<div class="flider-container"></div>');
         container.append(slides);
         wrapper.append(container);
         wrapper.addClass('flider').css('z-index',0);
@@ -12,7 +12,9 @@
             autoPlay: true,
             delay: 1000,
             controls: false,
-            onHoverPause: true
+            onHoverPause: true,
+            pager: false,
+            pagerPosition: top
 
         };
 
@@ -26,6 +28,7 @@
             'position': 'absolute',
             'z-index': '-1',
             'display': 'none',
+            'width': '100%',
             'top': 0
         });
         currentSlide.css({
@@ -45,7 +48,7 @@
                 //'display': 'block'
             });
             nextSlide.fadeIn({
-                duration: options.duration,
+                duration: options.duration
 
             });
             currentSlide.fadeOut({
@@ -119,10 +122,39 @@
             autoPlay = setTimeout(play,options.delay);
         }
 
-        if(options.onHoverPause){
-            wrapper.mousehover(function(){
+        //if(options.onHoverPause){
+        //    wrapper.mousehover(function(){
+        //
+        //    });
+        //}
 
+        if(options.pager){
+            var pager = $('<ul class="flider-pager"></ul>');
+            slides.each(function(index, item){
+                var slide = $(item);
+                var title =  index + 1;
+                if(slide.children('.flide-title').length) {
+
+                    title = slide.children('.flide-title').html();
+                    slide.children('.flide-title').remove();
+                }
+                var pointer = $('<a href="#">' + title + '</a>');
+                pointer.click(function (e) {
+                    changeSlide(slide);
+                    return false;
+                });
+                var li =$('<li></li>');
+                li.append(pointer);
+                pager.append(li);
             });
+            switch (options.pagerPosition){
+                case 'bottom':
+                    wrapper.append(pager);
+                    break;
+                default:
+                    wrapper.prepend(pager);
+                    break;
+            }
         }
 
     };
