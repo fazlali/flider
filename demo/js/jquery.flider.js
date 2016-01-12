@@ -48,7 +48,7 @@
                 //'display': 'block'
             });
             slides.each(function(index, slide){
-                if($(slide) != currentSlide)
+                if($(slide) != nextSlide)
                     $(slide).data('pointer').removeClass('active').parent().removeClass('active');
             });
             nextSlide.data('pointer').addClass('active').parent().addClass('active');
@@ -163,6 +163,8 @@
                     break;
             }
         }
+        currentSlide.data('pointer').addClass('active').parent().addClass('active');
+
 
     };
 
