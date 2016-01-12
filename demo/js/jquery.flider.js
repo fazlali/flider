@@ -181,6 +181,8 @@
                     wrapper.prepend(pager);
                     break;
             }
+            currentSlide.data('pointer').addClass('active').parent().addClass('active');
+
         }
 
         var currentSlide = slides.first();
@@ -222,7 +224,6 @@
 
                 break;
         }
-        currentSlide.data('pointer').addClass('active').parent().addClass('active');
 
 
     };
