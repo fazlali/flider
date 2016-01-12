@@ -6,6 +6,7 @@
         wrapper.append(container);
         wrapper.addClass('flider').css('z-index',0);
 
+        var _this =this;
         var defaults = {
             effect : 'fade',
             duration: 100,
@@ -14,30 +15,28 @@
             controls: false,
             onHoverPause: true,
             pager: false,
-            pagerPosition: top
+            pagerPosition: top,
+            before: {
+                do: function(slide,currentSlide,nextSlide){
+                    slide.apply();
+                },
+                by: []
+
+            },
+            after: {
+                do: function(currentSlide){
+
+                },
+                by: []
+
+            }
 
         };
+        options = $.extend(defaults,options);
 
-        var currentSlide = slides.first();
 
-        container.css({
-            'position': 'relative',
-            'overflow': 'hidden'
-        });
-        slides.css({
-            'position': 'absolute',
-            'z-index': '-1',
-            'display': 'none',
-            'width': '100%',
-            'top': 0
-        });
-        currentSlide.css({
-            'position': 'relative',
-            'z-index': '1',
-            'display': 'block'
-        });
 
-        var changeSlide = function(nextSlide, complete){
+        var changeSlide = function(nextSlide){
 
             if(nextSlide.is(currentSlide)){
                 return;
@@ -52,47 +51,67 @@
                     $(slide).data('pointer').removeClass('active').parent().removeClass('active');
             });
             nextSlide.data('pointer').addClass('active').parent().addClass('active');
-            nextSlide.fadeIn({
-                duration: options.duration
+            options.before.do.apply(_this,[
+                function(){
 
-            });
-            currentSlide.fadeOut({
-                duration: options.duration,
-                complete: function(){
-                    nextSlide.css({
-                        'position': 'relative',
-                        'z-index': '1'
-                    });
-                    currentSlide.css({
-                        'position': 'absolute',
-                        'z-index': '-1'
-                    });
+                    switch(options.effect) {
+                        case 'fade':
 
-                    currentSlide = nextSlide;
-                    if(complete)
-                        complete();
-                }
-            });
+                            nextSlide.fadeIn({
+                                duration: options.duration
+
+                            });
+                            currentSlide.fadeOut({
+                                duration: options.duration,
+                                complete: function () {
+                                    nextSlide.css({
+                                        'position': 'relative',
+                                        'z-index': '1'
+                                    });
+                                    currentSlide.css({
+                                        'position': 'absolute',
+                                        'z-index': '-1'
+                                    });
+
+                                    currentSlide = nextSlide;
+                                    options.after.do.apply(_this,[currentSlide].concat(options.after.by));
+
+                                }
+                            });
+
+                            break;
+                        case 'simple':
+
+                            currentSlide.hide();
+                            nextSlide.show();
+                            currentSlide =nextSlide;
+                            options.after.do.apply(_this,[currentSlide].concat(options.after.by));
+                            break;
+
+                    }
+                },
+                currentSlide,
+                nextSlide
+            ].concat(options.before.by));
         };
 
-        options = $.extend(defaults,options);
 
-        var prev = function(complete){
+        var prev = function(){
 
             var nextSlide = currentSlide.prev();
             if(nextSlide.length == 0){
                 nextSlide = slides.last();
             }
-            changeSlide(nextSlide,complete);
+            changeSlide(nextSlide);
         };
 
-        var next = function(complete){
+        var next = function(){
 
             var nextSlide = currentSlide.next();
             if(nextSlide.length == 0){
                 nextSlide = slides.first();
             }
-            changeSlide(nextSlide,complete);
+            changeSlide(nextSlide);
         };
 
 
@@ -162,6 +181,46 @@
                     wrapper.prepend(pager);
                     break;
             }
+        }
+
+        var currentSlide = slides.first();
+        switch(options.effect) {
+            case 'fade':
+
+
+                container.css({
+                    'position': 'relative',
+                    'overflow': 'hidden'
+                });
+                slides.css({
+                    'position': 'absolute',
+                    'z-index': '-1',
+                    'display': 'none',
+                    'width': '100%',
+                    'top': 0
+                });
+                currentSlide.css({
+                    'position': 'relative',
+                    'z-index': '1',
+                    'display': 'block'
+                });
+
+                break;
+            case 'simple':
+
+
+                container.css({
+                    'position': 'relative',
+                    'overflow': 'hidden'
+                });
+                slides.css({
+                    'display': 'none'
+                });
+                currentSlide.css({
+                    'display': 'block'
+                });
+
+                break;
         }
         currentSlide.data('pointer').addClass('active').parent().addClass('active');
 
