@@ -131,22 +131,8 @@
         duration: 900,
         autoPlay: false,
         pager: true,
-        effect: 'simple',
-        before: {
-            do: function(slide,currentSlide,nextSlide,text){
-                alert(text);
-                slide.apply();
-            },
-            by: [':D']
-
-        },
-        after: {
-            do: function(currentSlide, text){
-                alert(text);
-            },
-            by: [':p']
-
-        }
+        effect: 'fade',
+        itemsPerSlide: 7
 
     });
 </script>

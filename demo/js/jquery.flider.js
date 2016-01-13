@@ -1,12 +1,12 @@
 (function($){
     var Flider = function(wrapper, options){
-        var slides = wrapper.children();
+        var _this =this;
+        var items = wrapper.children();
         var container =$('<div class="flider-container"></div>');
-        container.append(slides);
         wrapper.append(container);
+
         wrapper.addClass('flider').css('z-index',0);
 
-        var _this =this;
         var defaults = {
             effect : 'fade',
             duration: 100,
@@ -16,6 +16,7 @@
             onHoverPause: true,
             pager: false,
             pagerPosition: top,
+            itemsPerSlide: 1,
             before: {
                 do: function(slide,currentSlide,nextSlide){
                     slide.apply();
@@ -32,6 +33,7 @@
             }
 
         };
+
         options = $.extend(defaults,options);
 
 
@@ -46,11 +48,14 @@
                 'z-index': '0'
                 //'display': 'block'
             });
-            slides.each(function(index, slide){
-                if($(slide) != nextSlide)
-                    $(slide).data('pointer').removeClass('active').parent().removeClass('active');
-            });
-            nextSlide.data('pointer').addClass('active').parent().addClass('active');
+            if(options.pager){
+                slides.each(function(index, slide){
+                    if($(slide) != nextSlide)
+                        $(slide).data('pointer').removeClass('active').parent().removeClass('active');
+                });
+                nextSlide.data('pointer').addClass('active').parent().addClass('active');
+            }
+
             options.before.do.apply(_this,[
                 function(){
 
@@ -74,8 +79,10 @@
                                     });
 
                                     currentSlide = nextSlide;
-                                    options.after.do.apply(_this,[currentSlide].concat(options.after.by));
-
+                                    options.after.do.apply(_this,[
+                                        function(){
+                                            autoPlay = setTimeout(next,options.delay); //second approach for autoPlay
+                                        },currentSlide].concat(options.after.by));
                                 }
                             });
 
@@ -85,7 +92,10 @@
                             currentSlide.hide();
                             nextSlide.show();
                             currentSlide =nextSlide;
-                            options.after.do.apply(_this,[currentSlide].concat(options.after.by));
+                            options.after.do.apply(_this,[
+                                function(){
+                                    autoPlay = setTimeout(next,options.delay); //second approach for autoPlay
+                                },currentSlide].concat(options.after.by));
                             break;
 
                     }
@@ -114,13 +124,31 @@
             changeSlide(nextSlide);
         };
 
+        var slides;
+        var currentSlide;
+
+        _this.setItemPerSlide = function (count) {
+
+            container.children().remove();
+            for(var i=0; i < items.length;){
+                var slide = $('<div class="flide"></div>');
+
+                for(var k = 0; k<count; i++,k++){
+                    slide.append(items[i]);
+                }
+                container.append(slide);
+            }
+            slides = container.children();
+            currentSlide = slides.first();
+            options.itemsPerSlide = count;
+            //next();
+        };
+
+        _this.setItemPerSlide(options.itemsPerSlide);
+
 
         var autoPlay = null;
-        var play = function(){
-            next(function(){
-                autoPlay = setTimeout(play,options.delay);
-            });
-        };
+
         if(options.controls) {
 
             var prevButton = $('<a href="#" >Prev</a>');
@@ -143,7 +171,7 @@
 
         if(options.autoPlay){
             clearTimeout(autoPlay);
-            autoPlay = setTimeout(play,options.delay);
+            autoPlay = setTimeout(next,options.delay);
         }
 
         //if(options.onHoverPause){
@@ -185,7 +213,6 @@
 
         }
 
-        var currentSlide = slides.first();
         switch(options.effect) {
             case 'fade':
 
