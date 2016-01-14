@@ -1,12 +1,12 @@
 (function($){
     var Flider = function(wrapper, options){
-        var slides = wrapper.children();
+        var _this =this;
+        var items = wrapper.children();
         var container =$('<div class="flider-container"></div>');
-        container.append(slides);
         wrapper.append(container);
+
         wrapper.addClass('flider').css('z-index',0);
 
-        var _this =this;
         var defaults = {
             effect : 'fade',
             duration: 100,
@@ -16,6 +16,7 @@
             onHoverPause: true,
             pager: false,
             pagerPosition: top,
+            itemsPerSlide: 1,
             before: {
                 do: function(slide,currentSlide,nextSlide){
                     slide.apply();
@@ -32,6 +33,7 @@
             }
 
         };
+
         options = $.extend(defaults,options);
 
 
@@ -60,11 +62,11 @@
                     switch(options.effect) {
                         case 'fade':
 
-                            nextSlide.fadeIn({
+                            nextSlide.finish().fadeIn({
                                 duration: options.duration
 
                             });
-                            currentSlide.fadeOut({
+                            currentSlide.finish().fadeOut({
                                 duration: options.duration,
                                 complete: function () {
                                     nextSlide.css({
@@ -77,8 +79,10 @@
                                     });
 
                                     currentSlide = nextSlide;
-                                    options.after.do.apply(_this,[currentSlide].concat(options.after.by));
-                                    autoPlay = setTimeout(next,options.delay); //second approach for autoPlay
+                                    options.after.do.apply(_this,[
+                                        function(){
+                                            autoPlay = setTimeout(next,options.delay); //second approach for autoPlay
+                                        },currentSlide].concat(options.after.by));
                                 }
                             });
 
@@ -88,8 +92,10 @@
                             currentSlide.hide();
                             nextSlide.show();
                             currentSlide =nextSlide;
-                            options.after.do.apply(_this,[currentSlide].concat(options.after.by));
-                            autoPlay = setTimeout(next,options.delay); //second approach for autoPlay
+                            options.after.do.apply(_this,[
+                                function(){
+                                    autoPlay = setTimeout(next,options.delay); //second approach for autoPlay
+                                },currentSlide].concat(options.after.by));
                             break;
 
                     }
@@ -118,116 +124,143 @@
             changeSlide(nextSlide);
         };
 
+        _this.setItemsPerSlide = function (count) {
+            options.itemsPerSlide = count;
+            init()
+        };
 
+        var slides;
+        var currentSlide;
         var autoPlay = null;
-        //var play = function(){
-        //    next(function(){
-        //        autoPlay = setTimeout(play,options.delay);
-        //    });
-        //}; first approach for autoPlay
-        if(options.controls) {
+        var controls = $('<div class="controls"></div>');
+        var pager = $('<ul class="flider-pager"></ul>');
 
-            var prevButton = $('<a href="#" >Prev</a>');
-            var nextButton = $('<a href="#" >Next</a>');
-            var controls = $('<div class="controls"></div>');
-            controls.append(prevButton, nextButton);
-            wrapper.append(controls);
+        var init = function () {
 
-            prevButton.click(function () {
-                prev();
-                return false;
-            });
+            container.children().remove();
+            for(var i=0; i < items.length;){
+                var slide = $('<div class="flide"></div>');
 
-            nextButton.click(function () {
-                next();
-                return false;
-            });
-        }
+                for(var k = 0; k<options.itemsPerSlide; i++,k++){
+                    slide.append(items[i]);
+                }
+                container.append(slide);
+            }
+            slides = container.children();
+            currentSlide = slides.first();
+
+            wrapper.find(controls).detach();
+            if(options.controls) {
+                controls.children().remove();
+                var prevButton = $('<a href="#" >Prev</a>');
+                var nextButton = $('<a href="#" >Next</a>');
+                controls.append(prevButton, nextButton);
+                wrapper.append(controls);
+
+                prevButton.click(function () {
+                    prev();
+                    return false;
+                });
+
+                nextButton.click(function () {
+                    next();
+                    return false;
+                });
+            }
 
 
-        if(options.autoPlay){
             clearTimeout(autoPlay);
-            autoPlay = setTimeout(next,options.delay);
-        }
+            if(options.autoPlay){
+                autoPlay = setTimeout(next,options.delay);
+            }
+
+            wrapper.find(pager).detach();
+            if(options.pager){
+                pager.children().remove();
+                slides.each(function(index, item){
+                    var slide = $(item);
+                    var title =  index + 1;
+                    if(slide.children().children('.flide-title').length) {
+
+                        title = slide.children().children('.flide-title').html();
+                        slide.children().children('.flide-title').remove();
+                    }
+                    var pointer = $('<a href="#">' + title + '</a>');
+                    pointer.click(function (e) {
+                        changeSlide(slide);
+
+                        return false;
+                    });
+                    var li =$('<li></li>');
+                    li.append(pointer);
+                    pager.append(li);
+                    slide.data('pointer', pointer);
+                });
+
+                switch (options.pagerPosition){
+                    case 'bottom':
+                        wrapper.append(pager);
+                        break;
+                    default:
+                        wrapper.prepend(pager);
+                        break;
+                }
+                currentSlide.data('pointer').addClass('active').parent().addClass('active');
+
+            }
+
+            switch(options.effect) {
+                case 'fade':
+
+
+                    container.css({
+                        'position': 'relative',
+                        'overflow': 'hidden'
+                    });
+                    slides.css({
+                        'position': 'absolute',
+                        'z-index': '-1',
+                        'display': 'none',
+                        'width': '100%',
+                        'top': 0
+                    });
+                    currentSlide.css({
+                        'position': 'relative',
+                        'z-index': '1',
+                        'display': 'block'
+                    });
+
+                    break;
+                case 'simple':
+
+
+                    container.css({
+                        'position': 'relative',
+                        'overflow': 'hidden'
+                    });
+                    slides.css({
+                        'display': 'none'
+                    });
+                    currentSlide.css({
+                        'display': 'block'
+                    });
+
+                    break;
+            }
+
+        };
+
+        init();
+
+
+
+
 
         //if(options.onHoverPause){
         //    wrapper.mousehover(function(){
         //
         //    });
         //}
-        var currentSlide = slides.first();
-
-        if(options.pager){
-            var pager = $('<ul class="flider-pager"></ul>');
-            slides.each(function(index, item){
-                var slide = $(item);
-                var title =  index + 1;
-                if(slide.children('.flide-title').length) {
-
-                    title = slide.children('.flide-title').html();
-                    slide.children('.flide-title').remove();
-                }
-                var pointer = $('<a href="#">' + title + '</a>');
-                pointer.click(function (e) {
-                    changeSlide(slide);
-
-                    return false;
-                });
-                var li =$('<li></li>');
-                li.append(pointer);
-                pager.append(li);
-                slide.data('pointer', pointer);
-            });
-            switch (options.pagerPosition){
-                case 'bottom':
-                    wrapper.append(pager);
-                    break;
-                default:
-                    wrapper.prepend(pager);
-                    break;
-            }
-            currentSlide.data('pointer').addClass('active').parent().addClass('active');
-
-        }
-
-        switch(options.effect) {
-            case 'fade':
-
-
-                container.css({
-                    'position': 'relative',
-                    'overflow': 'hidden'
-                });
-                slides.css({
-                    'position': 'absolute',
-                    'z-index': '-1',
-                    'display': 'none',
-                    'width': '100%',
-                    'top': 0
-                });
-                currentSlide.css({
-                    'position': 'relative',
-                    'z-index': '1',
-                    'display': 'block'
-                });
-
-                break;
-            case 'simple':
-
-
-                container.css({
-                    'position': 'relative',
-                    'overflow': 'hidden'
-                });
-                slides.css({
-                    'display': 'none'
-                });
-                currentSlide.css({
-                    'display': 'block'
-                });
-
-                break;
-        }
 
 
     };

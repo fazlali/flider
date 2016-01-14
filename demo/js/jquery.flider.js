@@ -62,11 +62,11 @@
                     switch(options.effect) {
                         case 'fade':
 
-                            nextSlide.fadeIn({
+                            nextSlide.finish().fadeIn({
                                 duration: options.duration
 
                             });
-                            currentSlide.fadeOut({
+                            currentSlide.finish().fadeOut({
                                 duration: options.duration,
                                 complete: function () {
                                     nextSlide.css({
@@ -124,133 +124,143 @@
             changeSlide(nextSlide);
         };
 
+        _this.setItemsPerSlide = function (count) {
+            options.itemsPerSlide = count;
+            init()
+        };
+
         var slides;
         var currentSlide;
+        var autoPlay = null;
+        var controls = $('<div class="controls"></div>');
+        var pager = $('<ul class="flider-pager"></ul>');
 
-        _this.setItemPerSlide = function (count) {
+        var init = function () {
 
             container.children().remove();
             for(var i=0; i < items.length;){
                 var slide = $('<div class="flide"></div>');
 
-                for(var k = 0; k<count; i++,k++){
+                for(var k = 0; k<options.itemsPerSlide; i++,k++){
                     slide.append(items[i]);
                 }
                 container.append(slide);
             }
             slides = container.children();
             currentSlide = slides.first();
-            options.itemsPerSlide = count;
-            //next();
+
+            wrapper.find(controls).detach();
+            if(options.controls) {
+                controls.children().remove();
+                var prevButton = $('<a href="#" >Prev</a>');
+                var nextButton = $('<a href="#" >Next</a>');
+                controls.append(prevButton, nextButton);
+                wrapper.append(controls);
+
+                prevButton.click(function () {
+                    prev();
+                    return false;
+                });
+
+                nextButton.click(function () {
+                    next();
+                    return false;
+                });
+            }
+
+
+            clearTimeout(autoPlay);
+            if(options.autoPlay){
+                autoPlay = setTimeout(next,options.delay);
+            }
+
+            wrapper.find(pager).detach();
+            if(options.pager){
+                pager.children().remove();
+                slides.each(function(index, item){
+                    var slide = $(item);
+                    var title =  index + 1;
+                    if(slide.children().children('.flide-title').length) {
+
+                        title = slide.children().children('.flide-title').html();
+                        slide.children().children('.flide-title').remove();
+                    }
+                    var pointer = $('<a href="#">' + title + '</a>');
+                    pointer.click(function (e) {
+                        changeSlide(slide);
+
+                        return false;
+                    });
+                    var li =$('<li></li>');
+                    li.append(pointer);
+                    pager.append(li);
+                    slide.data('pointer', pointer);
+                });
+
+                switch (options.pagerPosition){
+                    case 'bottom':
+                        wrapper.append(pager);
+                        break;
+                    default:
+                        wrapper.prepend(pager);
+                        break;
+                }
+                currentSlide.data('pointer').addClass('active').parent().addClass('active');
+
+            }
+
+            switch(options.effect) {
+                case 'fade':
+
+
+                    container.css({
+                        'position': 'relative',
+                        'overflow': 'hidden'
+                    });
+                    slides.css({
+                        'position': 'absolute',
+                        'z-index': '-1',
+                        'display': 'none',
+                        'width': '100%',
+                        'top': 0
+                    });
+                    currentSlide.css({
+                        'position': 'relative',
+                        'z-index': '1',
+                        'display': 'block'
+                    });
+
+                    break;
+                case 'simple':
+
+
+                    container.css({
+                        'position': 'relative',
+                        'overflow': 'hidden'
+                    });
+                    slides.css({
+                        'display': 'none'
+                    });
+                    currentSlide.css({
+                        'display': 'block'
+                    });
+
+                    break;
+            }
+
         };
 
-        _this.setItemPerSlide(options.itemsPerSlide);
+        init();
 
 
-        var autoPlay = null;
-
-        if(options.controls) {
-
-            var prevButton = $('<a href="#" >Prev</a>');
-            var nextButton = $('<a href="#" >Next</a>');
-            var controls = $('<div class="controls"></div>');
-            controls.append(prevButton, nextButton);
-            wrapper.append(controls);
-
-            prevButton.click(function () {
-                prev();
-                return false;
-            });
-
-            nextButton.click(function () {
-                next();
-                return false;
-            });
-        }
 
 
-        if(options.autoPlay){
-            clearTimeout(autoPlay);
-            autoPlay = setTimeout(next,options.delay);
-        }
 
         //if(options.onHoverPause){
         //    wrapper.mousehover(function(){
         //
         //    });
         //}
-
-        if(options.pager){
-            var pager = $('<ul class="flider-pager"></ul>');
-            slides.each(function(index, item){
-                var slide = $(item);
-                var title =  index + 1;
-                if(slide.children('.flide-title').length) {
-
-                    title = slide.children('.flide-title').html();
-                    slide.children('.flide-title').remove();
-                }
-                var pointer = $('<a href="#">' + title + '</a>');
-                pointer.click(function (e) {
-                    changeSlide(slide);
-
-                    return false;
-                });
-                var li =$('<li></li>');
-                li.append(pointer);
-                pager.append(li);
-                slide.data('pointer', pointer);
-            });
-            switch (options.pagerPosition){
-                case 'bottom':
-                    wrapper.append(pager);
-                    break;
-                default:
-                    wrapper.prepend(pager);
-                    break;
-            }
-            currentSlide.data('pointer').addClass('active').parent().addClass('active');
-
-        }
-
-        switch(options.effect) {
-            case 'fade':
-
-
-                container.css({
-                    'position': 'relative',
-                    'overflow': 'hidden'
-                });
-                slides.css({
-                    'position': 'absolute',
-                    'z-index': '-1',
-                    'display': 'none',
-                    'width': '100%',
-                    'top': 0
-                });
-                currentSlide.css({
-                    'position': 'relative',
-                    'z-index': '1',
-                    'display': 'block'
-                });
-
-                break;
-            case 'simple':
-
-
-                container.css({
-                    'position': 'relative',
-                    'overflow': 'hidden'
-                });
-                slides.css({
-                    'display': 'none'
-                });
-                currentSlide.css({
-                    'display': 'block'
-                });
-
-                break;
-        }
 
 
     };
