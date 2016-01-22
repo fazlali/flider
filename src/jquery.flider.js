@@ -1,11 +1,5 @@
 (function($){
     var Flider = function(wrapper, options){
-        var _this =this;
-        var items = wrapper.children();
-        var container =$('<div class="flider-container"></div>');
-        wrapper.append(container);
-
-        wrapper.addClass('flider').css('z-index',0);
 
         var defaults = {
             effect : 'fade',
@@ -13,10 +7,12 @@
             autoPlay: true,
             delay: 1000,
             controls: false,
+            controlsPosition: 'bottom',
             onHoverPause: true,
             pager: false,
-            pagerPosition: top,
+            pagerPosition: 'top',
             itemsPerSlide: 1,
+            slideSelector: '',
             before: {
                 do: function(slide,currentSlide,nextSlide){
                     slide.apply();
@@ -25,8 +21,8 @@
 
             },
             after: {
-                do: function(currentSlide){
-
+                do: function(slide){
+                    slide.apply()
                 },
                 by: []
 
@@ -36,10 +32,16 @@
 
         options = $.extend(defaults,options);
 
+        var _this =this;
+        var items = wrapper.children(options.slideSelector);
+        var container =$('<div class="flider-container"></div>');
+        wrapper.append(container);
+
+        wrapper.addClass('flider').css('z-index',0);
 
 
         var changeSlide = function(nextSlide){
-
+            clearTimeout(autoPlay);
             if(nextSlide.is(currentSlide)){
                 return;
             }
@@ -61,7 +63,14 @@
 
                     switch(options.effect) {
                         case 'fade':
-
+                            nextSlide.css({
+                                'position': 'relative',
+                                'z-index': '1'
+                            });
+                            currentSlide.css({
+                                'position': 'absolute',
+                                'z-index': '-1'
+                            });
                             nextSlide.finish().fadeIn({
                                 duration: options.duration
 
@@ -69,19 +78,13 @@
                             currentSlide.finish().fadeOut({
                                 duration: options.duration,
                                 complete: function () {
-                                    nextSlide.css({
-                                        'position': 'relative',
-                                        'z-index': '1'
-                                    });
-                                    currentSlide.css({
-                                        'position': 'absolute',
-                                        'z-index': '-1'
-                                    });
+
 
                                     currentSlide = nextSlide;
                                     options.after.do.apply(_this,[
                                         function(){
-                                            autoPlay = setTimeout(next,options.delay); //second approach for autoPlay
+                                            if(options.autoPlay)
+                                                autoPlay = setTimeout(next,options.delay); //second approach for autoPlay
                                         },currentSlide].concat(options.after.by));
                                 }
                             });
@@ -125,8 +128,12 @@
         };
 
         _this.setItemsPerSlide = function (count) {
-            options.itemsPerSlide = count;
-            init()
+            if(count>0 && options.itemsPerSlide != count) {
+                options.itemsPerSlide = count;
+                init();
+                return true;
+            }
+            return false;
         };
 
         var slides;
@@ -134,9 +141,12 @@
         var autoPlay = null;
         var controls = $('<div class="controls"></div>');
         var pager = $('<ul class="flider-pager"></ul>');
-
+        _this.pager = pager;
         var init = function () {
 
+            if(items.length === 0){
+                return false;
+            }
             container.children().remove();
             for(var i=0; i < items.length;){
                 var slide = $('<div class="flide"></div>');
@@ -149,32 +159,7 @@
             slides = container.children();
             currentSlide = slides.first();
 
-            wrapper.find(controls).detach();
-            if(options.controls) {
-                controls.children().remove();
-                var prevButton = $('<a href="#" >Prev</a>');
-                var nextButton = $('<a href="#" >Next</a>');
-                controls.append(prevButton, nextButton);
-                wrapper.append(controls);
-
-                prevButton.click(function () {
-                    prev();
-                    return false;
-                });
-
-                nextButton.click(function () {
-                    next();
-                    return false;
-                });
-            }
-
-
-            clearTimeout(autoPlay);
-            if(options.autoPlay){
-                autoPlay = setTimeout(next,options.delay);
-            }
-
-            wrapper.find(pager).detach();
+            //wrapper.find(pager).remove();
             if(options.pager){
                 pager.children().remove();
                 slides.each(function(index, item){
@@ -208,6 +193,39 @@
                 currentSlide.data('pointer').addClass('active').parent().addClass('active');
 
             }
+
+            //wrapper.find(controls).remove();
+            if(options.controls) {
+                controls.children().remove();
+                var prevButton = $('<a href="#" >Prev</a>');
+                var nextButton = $('<a href="#" >Next</a>');
+
+                prevButton.click(function () {
+                    prev();
+                    return false;
+                });
+
+                nextButton.click(function () {
+                    next();
+                    return false;
+                });
+                controls.append(prevButton, nextButton);
+                switch (options.controlsPosition){
+                    case 'bottom':
+                        wrapper.append(controls);
+                        break;
+                    default:
+                        wrapper.prepend(controls);
+                        break;
+                }
+            }
+
+
+            clearTimeout(autoPlay);
+            if(options.autoPlay){
+                autoPlay = setTimeout(next,options.delay);
+            }
+
 
             switch(options.effect) {
                 case 'fade':
