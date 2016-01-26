@@ -2,13 +2,13 @@
     var Flider = function(wrapper, options){
 
         var defaults = {
+            onHoverPause: false,
             effect : 'fade',
             duration: 100,
             autoPlay: true,
             delay: 1000,
             controls: false,
             controlsPosition: 'bottom',
-            onHoverPause: true,
             pager: false,
             pagerPosition: 'top',
             itemsPerSlide: 1,
@@ -84,7 +84,7 @@
                                     options.after.do.apply(_this,[
                                         function(){
                                             if(options.autoPlay)
-                                                autoPlay = setTimeout(next,options.delay); //second approach for autoPlay
+                                                autoPlay = setTimeout(_this.next,options.delay); //second approach for autoPlay
                                         },currentSlide].concat(options.after.by));
                                 }
                             });
@@ -97,7 +97,7 @@
                             currentSlide =nextSlide;
                             options.after.do.apply(_this,[
                                 function(){
-                                    autoPlay = setTimeout(next,options.delay); //second approach for autoPlay
+                                    autoPlay = setTimeout(_this.next,options.delay); //second approach for autoPlay
                                 },currentSlide].concat(options.after.by));
                             break;
 
@@ -109,7 +109,7 @@
         };
 
 
-        var prev = function(){
+        this.prev = function(){
 
             var nextSlide = currentSlide.prev();
             if(nextSlide.length == 0){
@@ -118,7 +118,7 @@
             changeSlide(nextSlide);
         };
 
-        var next = function(){
+        _this.next = function(){
 
             var nextSlide = currentSlide.next();
             if(nextSlide.length == 0){
@@ -134,6 +134,17 @@
                 return true;
             }
             return false;
+        };
+
+        this.play = function (){
+            options.autoPlay = true;
+            clearTimeout(autoPlay);
+            autoPlay = setTimeout(_this.next,options.delay);
+        };
+
+        this.pause = function (){
+            //options.autoPlay = false;
+            clearTimeout(autoPlay);
         };
 
         var slides;
@@ -201,15 +212,17 @@
                 var nextButton = $('<a href="#" >Next</a>');
 
                 prevButton.click(function () {
-                    prev();
+                    _this.prev();
                     return false;
                 });
 
                 nextButton.click(function () {
-                    next();
+                    _this.next();
                     return false;
                 });
                 controls.append(prevButton, nextButton);
+                if (slides.length < 2)
+                    controls.css('visibility', 'hidden');
                 switch (options.controlsPosition){
                     case 'bottom':
                         wrapper.append(controls);
@@ -223,9 +236,17 @@
 
             clearTimeout(autoPlay);
             if(options.autoPlay){
-                autoPlay = setTimeout(next,options.delay);
+                autoPlay = setTimeout(_this.next,options.delay);
             }
 
+            if(options.onHoverPause){
+                wrapper.hover(function(){
+                    _this.pause();
+                }).mouseleave(function(){
+                    if (options.autoPlay)
+                        _this.play();
+                });
+            }
 
             switch(options.effect) {
                 case 'fade':
